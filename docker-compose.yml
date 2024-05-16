@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+    command: >
+      sh -c "python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8080"
+    ports:
+      - 8080:8080
+    volumes:
+      - ./app:/app
+      - ./data/web:/vol/web
+    environment:
+      - SECRET_KEY=devsecretkey
+      - DEBUG=1
+      - DB_HOST=db
+      - DB_NAME=dev_db
+      - DB_USER=devuser
+      - DB_PASS=changeme
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - EMAIL_HOST_USER=toussainttchodo@gmail.com
+      - EMAIL_HOST_PASSWORD=fnfy nffa pdij roos
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173 http://127.0.0.1:5173
+      - ALLOWED_HOSTS=127.0.0.1 localhost
+    depends_on:
+      - db
+      
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=dev_db
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=changeme
