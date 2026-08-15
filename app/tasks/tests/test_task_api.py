@@ -6,6 +6,7 @@ Test for ingredient API
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import TestCase
+from account.serializers import UserSerializer
 from tasks.serializers import TaskSerializer
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -182,7 +183,7 @@ class PrivatetaskApiTests(TestCase):
    
         )
 
-        print("task ", task)
+  
 
         payload ={
             'title' : 'creating the endpoint',
@@ -236,6 +237,74 @@ class PrivatetaskApiTests(TestCase):
         self.assertEqual(res.status_code,status.HTTP_404_NOT_FOUND)
         self.assertTrue(Task.objects.filter(id=task.id).exists())
 
+    """ def test_create_task_with_new_users(self):
+        users_to_assign=[]
+        today = datetime.date.today()
+        tomorrow =  today +datetime.timedelta(days=1)
+        new_user = create_user(email='testuser@example.com', password='test123')
+        new_user.is_active= True
+        new_user.save()
+      
+        print("user object ", new_user)
+        users_to_assign.append(new_user)  # Appending the user ID
+        payload={
+        'title':'Couleur orange en users',
+        'description':'Sample description',
+        'tags':['corriger lien', 'collage'],     
+        'badgeColor':['#332233', '#121212'],
+        'deadline' : tomorrow,
+        'assign_To' : users_to_assign, 
+        }
+
+
+        
+
+        res = self.client.post(TASK_CREATE, payload)
+        print(" le status ", res.status_code)
+        self.assertTrue(res.status_code, status.HTTP_201_CREATED)
+        tasks = Task.objects.filter(creator=self.user)
+        
+        self.assertTrue(tasks.exists())  # Ensure there is at least one task
+
+        task = tasks[0]
+        self.assertEqual(task.assign_To.count(), 1)
+        for user_id in payload['assign_To']:
+            exists = task.assign_To.filter(id=user_id.id).exists()
+            self.assertTrue(exists)
+
+ """
+    
+    def test_create_task_with_task_categorie(self):
+        """Test creating a commentaire"""
+        today = datetime.date.today()
+        tomorrow =  today +datetime.timedelta(days=1)
+        new_user = create_user(email='testuser@example.com', password='test123')
+        new_user.is_active= True
+        new_user.save()
+       
+        
+        payload={
+        'title':'Couleur orange en users',
+        'description':'Sample description',
+        'tags':['corriger lien', 'collage'],     
+        'badgeColor':['#332233', '#121212'],
+        'deadline' : tomorrow,
+        'assign_To':new_user.id,
+       
+        }
+        res = self.client.post(TASK_CREATE, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        task = Task.objects.get(id=res.data['id'])
+   
+        for k,v in payload.items():
+            if k == 'assign_To':
+             
+                self.assertEqual(getattr(task, k).id, v)  # Comparez les IDs des assigns to id
+    
+            else:
+                self.assertEqual(getattr(task, k), v)
+
+                
     def test_create_task_with_task_categorie(self):
         """Test creating a commentaire"""
         dashboard= Dashboard.objects.create(user=self.user,  bordName='User 4 Board', bordDescription='This is my board description', bordBack='#000000')
@@ -243,7 +312,7 @@ class PrivatetaskApiTests(TestCase):
 
         taskCategorie= TaskCategorie.objects.create(name='In progress', indexColor="#121222", indexNumber=1,defaultTaskCategory=True, dashboard=dashboard)
         #task = create_task(user=self.user, taskCategorie=taskCategorie.id)
-        print("le task categorie ", taskCategorie.id)
+      
        
         today = datetime.date.today()
         tomorrow =  today +datetime.timedelta(days=1)
@@ -259,7 +328,7 @@ class PrivatetaskApiTests(TestCase):
         res = self.client.post(TASK_CREATE, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         task = Task.objects.get(id=res.data['id'])
-        print("ce qui est créé", res.data)
+   
         for k,v in payload.items():
             if k == 'taskCategorie':
              

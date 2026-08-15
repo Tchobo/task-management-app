@@ -1,11 +1,12 @@
 from decimal import Decimal
 from rest_framework import serializers
 
-from core.models import MediaFile, Task, TaskCategorie, TaskComment
+from core.models import MediaFile, Task, TaskCategorie, TaskComment, User
 from django.contrib.auth import get_user_model
 from rest_framework.serializers import ValidationError
 from rest_framework.test import APIClient
 from django.db import transaction
+from account.serializers import UserSerializer
 class TaskCommentSerializer(serializers.ModelSerializer):
     """Task comment serializer"""
     class Meta:
@@ -49,10 +50,12 @@ class TaskSerializer(serializers.ModelSerializer):
     uploaded_files = serializers.ListField(
        child=serializers.FileField( max_length=1000000, allow_empty_file=True, use_url=False), write_only=True, required=False
     )
+    #assign_To = UserSerializer(many=True, required=False)
+    
     
     class Meta:
         model=Task
-        fields = ("id", "creator", "title", "description", "tags", "badgeColor", "created", "deadline", "comments", "uploaded_files","files", "taskCategorie", "position")
+        fields = ("id", "creator", "title", "description", "tags", "badgeColor", "created", "deadline", "comments", "uploaded_files","files", "taskCategorie", "position", "assign_To")
         read_only_fields = ("id", "creator", "files", "comments", )
         extra_kwargs = {'description': {'required': False}}
 
@@ -71,13 +74,28 @@ class TaskSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 for task_file in files:
                     file_obj = MediaFile.objects.create( task=task, file=task_file,)
-                    print("file created ", file_obj)
+             
+    """ 
+    def _get_or_create_users(self, task, users, request=None):
+        auth_user = request.user if request else None
+        print("this Is the user value ", users)
+        if auth_user:
+            for user in users:
+              
+                user_obj, create = User.objects.get_or_create(
+                    user=auth_user,
+                    **user,
+                )
+                task.assign_To.add(user_obj) """
+
+
 
            
 
 
     def create(self, validated_data):
         request = self.context.get('request')
+        users=validated_data.pop('assign_To', [])
         auth_user = request.user if request else None
         default_position  = 60000.0000
         if auth_user : 
@@ -99,19 +117,25 @@ class TaskSerializer(serializers.ModelSerializer):
                 # Handle the case where last_task is None
                 validated_data['position'] = Decimal(default_position)
 
-            print("Contenu de position ",  validated_data['position'])
             task_categorie_id = validated_data.pop('taskCategorie', None)
+            assign_To_id = validated_data.pop('assign_To', None)
 
             files = validated_data.pop('uploaded_files', [])
             if task_categorie_id is not None:
                 # Assuming TaskCategorie is the related model
                validated_data['taskCategorie'] = task_categorie_id
+            if assign_To_id is not None:
+                # Assuming TaskCategorie is the related model
+               validated_data['assign_To'] = assign_To_id
             task = Task.objects.create(**validated_data)
 
            
             if files is not None:  # Check for None
                 self._get_or_add_images(task, files, request)
             self._get_or_add_images(task,files, request)
+
+           
+
             return task
         else:
             raise serializers.ValidationError("Authentication required to create a task.")
@@ -121,6 +145,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validate_data):
         request = self.context.get('request')
+        users=validate_data.pop('assign_To', [])
         if not request:
             raise ValidationError("Request context is required for update.")
         
@@ -129,10 +154,12 @@ class TaskSerializer(serializers.ModelSerializer):
 
         files = validate_data.pop('uploaded_files', [])
 
-        print("contenu du fichier ", len(files))
        
-        if len(files) is not 0:
+        if files is not None:
             self._get_or_add_images( instance, files,request)
+        
+      
+
        
 
        
