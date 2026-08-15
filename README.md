@@ -3,9 +3,6 @@
 Un projet de gestion de tâches construit avec Django Rest Framework et Docker.
 
 ## Description
-
-Voici la correction de ta description :
-
 Ce projet est une application web de gestion de tâches où les utilisateurs peuvent créer des tableaux de bord correspondant à un projet. La création d'un tableau de bord génère systématiquement des catégories de tâches. Pour chaque catégorie, l'utilisateur peut ajouter, affecter ou modifier l'ordre des tâches selon l'évolution de la tâche respective. L'utilisateur a également la possibilité de modifier ou commenter une tâche.
 
 ## Fonctionnalités

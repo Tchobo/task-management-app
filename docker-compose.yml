@@ -32,7 +32,15 @@ services:
 
   db:
     image: postgres:13-alpine
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_DB=dev_db
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=changeme
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+
+volumes:
+  pgdata:
