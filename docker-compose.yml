@@ -14,7 +14,7 @@ services:
       - ./app:/app
       - ./data/web:/vol/web
     environment:
-      - SECRET_KEY=devsecretkey
+      - SECRET_KEY=${SECRET_KEY}
       - DEBUG=1
       - DB_HOST=db
       - DB_NAME=dev_db
@@ -22,8 +22,8 @@ services:
       - DB_PASS=changeme
       - EMAIL_HOST=smtp.gmail.com
       - EMAIL_PORT=587
-      - EMAIL_HOST_USER=toussainttchodo@gmail.com
-      - EMAIL_HOST_PASSWORD=fnfy nffa pdij roos
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
       - CORS_ALLOWED_ORIGINS=http://localhost:5173 http://127.0.0.1:5173
       - ALLOWED_HOSTS=127.0.0.1 localhost
     depends_on:
