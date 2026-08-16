@@ -23,8 +23,23 @@ from account.serializers import (AuthTokenSerializer, UserImageSerializer, UserD
 from rest_framework.permissions import IsAuthenticated
 
 class CreateUserView(generics.CreateAPIView):
-    """Create a new user in the system."""
+    """Create a new user in the system.
+
+    On success, the response includes a `message` field informing the user
+    that a confirmation email with an activation code has been sent.
+    """
     serializer_class = UserDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED and isinstance(response.data, dict):
+            response.data["message"] = (
+                "Un email de confirmation vient de vous être envoyé. "
+                "Vérifiez votre boîte de réception (et vos spams) pour "
+                "récupérer votre code d'activation."
+            )
+        return response
+
 
 class UserImageUploadView(generics.GenericAPIView):
     """Upload an image for a user."""
