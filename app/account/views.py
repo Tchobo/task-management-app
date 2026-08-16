@@ -19,7 +19,7 @@ from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
 
 from rest_framework import (viewsets, mixins, status)
-from account.serializers import (AuthTokenSerializer, UserImageSerializer, UserDetailSerializer, UserSerializer, VerifyOTPSerializer)
+from account.serializers import (AuthTokenSerializer, UserImageSerializer, UserDetailSerializer, UserListItemSerializer, UserSerializer, VerifyOTPSerializer)
 from rest_framework.permissions import IsAuthenticated
 
 class CreateUserView(generics.CreateAPIView):
@@ -86,6 +86,26 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Retrieve and return the authenticated user."""
         return self.request.user
+
+
+class UserListView(generics.ListAPIView):
+    """List all active users — used by the frontend assignee picker.
+
+    Returns lightweight user records (id, email, name, profile_image) suitable
+    for populating a dropdown when creating or editing a task. Requires
+    authentication so anonymous callers cannot enumerate accounts.
+
+    NOTE: this endpoint returns every active user in the database, which is
+    acceptable for a single-tenant portfolio project. In a multi-tenant
+    deployment the queryset should be scoped to the caller's organisation.
+    """
+
+    serializer_class = UserListItemSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(is_active=True).order_by("name", "email")
     
 
 class VerifyOTPView(generics.GenericAPIView):
