@@ -73,7 +73,7 @@ class PrivateCategoryApiTests(TestCase):
             TaskCategorie.objects.create(name='Done', indexColor="#121222", indexNumber=2.003, defaultTaskCategory=True, dashboard=dashboard)
 
             res = self.client.get(CATEGORY_URL)
-            categories = TaskCategorie.objects.all().order_by('-name')
+            categories = TaskCategorie.objects.all()
             serializer= TaskCategorieSerializer(categories, many=True)
 
             self.assertEqual(res.status_code,  status.HTTP_200_OK)
