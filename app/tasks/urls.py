@@ -15,6 +15,7 @@ urlpatterns = [
     path("task-patch/<uuid:pk>", views.TaskApiPatchView.as_view(), name="task-patch"),
     path("task-update/<uuid:pk>", views.TaskApiUpdateView.as_view(), name="task-update"),
     path("task-delete/<uuid:pk>", views.TaskApiDeleteView.as_view(), name="task-delete"),
+    path("rebalance-category/<int:category_pk>/", views.TaskRebalanceCategoryView.as_view(), name="task-rebalance-category"),
     path('task-upload-image/<uuid:pk>/upload-image/', views.TaskImageUploadView.as_view(), name='task-upload-image'),
 
 ]

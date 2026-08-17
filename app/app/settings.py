@@ -50,8 +50,9 @@ INSTALLED_APPS = [
     'core',
     'account.apps.AccountConfig',
     'dashboard.apps.DashboardConfig',
-    'tasks',
-    'corsheaders'
+    'tasks.apps.TasksConfig',
+    'corsheaders',
+    'django_celery_beat'
 ]
 
 MIDDLEWARE = [
@@ -148,22 +149,42 @@ AUTH_USER_MODEL = 'core.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS':'drf_spectacular.openapi.AutoSchema',    
+    'DEFAULT_SCHEMA_CLASS':'drf_spectacular.openapi.AutoSchema',
 }
+
+# ------------------------------------------------------------------------------
+# Frontend URL — used to build clickable "Open task" buttons in reminder emails.
+# ------------------------------------------------------------------------------
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+
+# ------------------------------------------------------------------------------
+# Celery — configured via environment variables (see .env.example)
+# ------------------------------------------------------------------------------
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 SPECTACULAR_SETTINGS ={
    'COMPONENT_SPLIT_REQUEST':True, 
    'DISABLE_ERRORS_AND_WARNINGS': False,  # Enable error and warning messages
 }
 
-# Email Configuration
+# Email — configured via environment variables (see .env.example)
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.environ.get("EMAIL_HOST", default="mail.theo.co")
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_USE_TLS = True
-EMAIL_PORT = os.environ.get("EMAIL_PORT", default=465)
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", default="ricostous@gmail.com")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", default="theo@1234")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 
 # Host configuration 

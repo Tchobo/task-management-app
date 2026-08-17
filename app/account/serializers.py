@@ -44,6 +44,20 @@ class UserDetailSerializer(UserSerializer):
         fields = UserSerializer.Meta.fields + ['id', 'profile_image']
 
 
+class UserListItemSerializer(serializers.ModelSerializer):
+    """Lightweight user serializer used by the assignee-picker dropdown.
+
+    Returns only the fields needed to display an option in an ``assign_To``
+    picker on the frontend: id, email, name, profile_image. No password
+    or activation code is ever exposed by this serializer.
+    """
+
+    class Meta:
+        model = get_user_model()
+        fields = ["id", "email", "name", "profile_image"]
+        read_only_fields = fields
+
+
 class AuthTokenSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(
