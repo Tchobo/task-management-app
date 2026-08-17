@@ -77,9 +77,14 @@ class CustomObtainAuthToken(ObtainAuthToken):
     
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
-    """Manager the authenticated user."""
+    """Manage the authenticated user.
 
-    serializer_class = UserSerializer
+    Uses UserDetailSerializer so the response includes the user id and
+    profile_image — needed by the frontend to identify the current user
+    (e.g. to gate the 'Delete task' button on task ownership).
+    """
+
+    serializer_class = UserDetailSerializer
     authentication_classes= [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 

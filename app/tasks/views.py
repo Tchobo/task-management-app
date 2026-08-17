@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 
 from core.models import Task, TaskComment, User
@@ -117,16 +118,23 @@ class TaskApiCreateView(BasicApi):
 
 
 class TaskListView(BasicApi):
-    """Task list view"""
+    """Task list view.
+
+    Without a pk, returns every task the authenticated user is involved in —
+    either as creator OR as assignee — so that a user can find in one place
+    both tasks they own and tasks other people delegated to them.
+    """
     serializer_class = TaskSerializer
+
     def get(self, requests, pk=None):
-    
         if pk is not None:
-           
-            task=self.get_object_task(pk=pk)
+            task = self.get_object_task(pk=pk)
             serializer = TaskSerializer(task)
-        else :
-            tasks = Task.objects.filter(creator=requests.user)
+        else:
+            user = requests.user
+            tasks = Task.objects.filter(
+                Q(creator=user) | Q(assign_To=user)
+            ).distinct()
             serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
     
@@ -169,9 +177,42 @@ class TaskApiDeleteView(BasicApi):
     
 
 
+class TaskRebalanceCategoryView(BasicApi):
+    """Rebalance the ``position`` of every task in a category.
+
+    The task list uses fractional indexing (each task has a Decimal position;
+    reordering computes a value between neighbours). After many reorders the
+    gap between neighbours can shrink below the DB precision (5 decimals),
+    causing silent truncation and identical positions. This endpoint restores
+    healthy spacing by reassigning every task's position to a fixed step
+    (60000, 120000, 180000, …) while preserving the current visual order.
+
+    URL: POST /api/tasks/rebalance-category/<uuid:category_pk>/
+    """
+
+    STEP = 60000
+
+    def post(self, request, category_pk):
+        from core.models import TaskCategorie
+        try:
+            category = TaskCategorie.objects.get(pk=category_pk)
+        except TaskCategorie.DoesNotExist:
+            return Response({"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        tasks_qs = Task.objects.filter(taskCategorie=category).order_by("position", "created")
+        for idx, task in enumerate(tasks_qs, start=1):
+            task.position = self.STEP * idx
+            task.save(update_fields=["position"])
+
+        return Response(
+            {"category": str(category.pk), "rebalanced": tasks_qs.count(), "step": self.STEP},
+            status=status.HTTP_200_OK,
+        )
+
+
 class TaskImageUploadView(BasicApi):
     parser_classes = (MultiPartParser,)
-    
+
     serializer_class = FileSerializer
 
     

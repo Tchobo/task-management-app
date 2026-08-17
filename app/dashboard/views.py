@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 from core.models import Dashboard, TaskCategorie
 from rest_framework.response import Response
@@ -36,13 +37,25 @@ class BasicDashboardApi(APIView):
 
 
 class DashboardApiListView(BasicDashboardApi):
+    """List dashboards the authenticated user can access.
+
+    A user sees a dashboard if they either own it (``user=me``) OR have at
+    least one task in it assigned to them (``categories.tasks.assign_To=me``).
+    This makes assigned-only users able to reach the boards they need to work
+    on, not just the boards they created themselves.
+    """
+
     serializer_class = DashboardSerializer
+
     def get(self, requests, slug=None):
         if slug is not None:
-            dashboard=self.get_object(slug = slug)
+            dashboard = self.get_object(slug=slug)
             serializer = DashboardSerializer(dashboard)
-        else :
-            dashboards = Dashboard.objects.filter(user=requests.user)
+        else:
+            user = requests.user
+            dashboards = Dashboard.objects.filter(
+                Q(user=user) | Q(categories__tasks__assign_To=user)
+            ).distinct()
             serializer = DashboardSerializer(dashboards, many=True)
         return Response(serializer.data)
     
