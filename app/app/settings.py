@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'core',
     'account.apps.AccountConfig',
     'dashboard.apps.DashboardConfig',
-    'tasks',
+    'tasks.apps.TasksConfig',
     'corsheaders',
     'django_celery_beat'
 ]
@@ -151,6 +151,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS':'drf_spectacular.openapi.AutoSchema',
 }
+
+# ------------------------------------------------------------------------------
+# Frontend URL — used to build clickable "Open task" buttons in reminder emails.
+# ------------------------------------------------------------------------------
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
 # ------------------------------------------------------------------------------
 # Celery — configured via environment variables (see .env.example)
